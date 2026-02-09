@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Memory Game</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f2f2f2;
+  }
+
+  h1 {
+    margin-top: 20px;
+  }
+
+  #score {
+    font-size: 20px;
+    margin: 10px;
+    font-weight: bold;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 80px);
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .card {
+    width: 80px;
+    height: 80px;
+    background: #333;
+    color: white;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .card.matched {
+    background: #4caf50;
+    cursor: default;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Memory Game</h1>
+<div id="score">Score: 0</div>
+<label>
+  Number of symbols:
+  <input type="number" id="symbolCount" min="2" max="52" value="16">
+  <br>
+  <br>
+  <button onclick="startGame()">Start Game</button>
+</label>
+<br>
+<br>
+<button onclick ="resetGame()">Reset Game</button>
+
+
+<div class="board" id="board"></div>
+
+<script>
+  const allSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const board = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const input = document.getElementById('symbolCount');
+
+  let first, second, score, matched, lock, symbols;
+
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function startGame() {
+    const count = Number(input.value);
+
+    board.innerHTML = "";
+    score = matched = 0;
+    first = second = null;
+    lock = false;
+    scoreEl.textContent = "Score: 0";
+
+    symbols = shuffle([...allSymbols]).slice(0, count);
+    const cards = shuffle([...symbols, ...symbols]);
+
+    cards.forEach(sym => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.textContent = '?';
+      card.dataset.symbol = sym;
+      card.onclick = () => flip(card);
+      board.appendChild(card);
+    });
+  }
+
+  function flip(card) {
+    if (lock || card === first || card.classList.contains('matched')) return;
+
+    card.textContent = card.dataset.symbol;
+
+    if (!first) {
+      first = card;
+      return;
+    }
+
+    second = card;
+    lock = true;
+
+    if (first.dataset.symbol === second.dataset.symbol) {
+      score += 4;
+      scoreEl.textContent = "Score: " + score;
+      first.classList.add('matched');
+      second.classList.add('matched');
+      matched++;
+      reset();
+
+      if (matched === symbols.length)
+        alert("You won! Final Score: " + score);
+    } else {
+      setTimeout(() => {
+        first.textContent = '?';
+        second.textContent = '?';
+        reset();
+      }, 700);
+    }
+  }
+
+  function reset() {
+    first = second = null;
+    lock = false;
+  }
+
+  function resetGame() {
+    startGame();
+  }
+
+  startGame(); // start with default value
+</script>
+
+
+</body>
+</html>
